@@ -1,10 +1,14 @@
-# CRSF to PWM Converter for STC15F104W
+"[English (Auto-translated)](README.en.md)" | 
+"[Español (Auto-translated)](README.es.md)" | 
+"[हिंदी (Auto-translated)](README.hi.md)" | 
+"[中文 (Auto-translated)](README.zh-CN.md)" | 
+"[Русский](README.md)"
 
-[English (Auto-translated)](README.en.md) | **Русский**
+# CRSF to PWM Converter for STC15F104W.
 
 Конвертер протокола CRSF (Crossfire) в PWM сигналы для микроконтроллера STC15F104W. Проект предназначен для использования в RC моделях, где требуется преобразование цифрового протокола CRSF в аналоговые PWM сигналы для управления сервоприводами.
 
-## Особенности
+## Особенности программного обеспечения.
 
 - Поддержка до 5 PWM каналов
 - Прием CRSF протокола через UART на скорости 115200 бод
@@ -12,70 +16,82 @@
 - Базовая валидация входных сигналов и обработка сбоев
 - Работа на частоте внутреннего 22.1184 МГц
 
-## Требования
+## Требуемое оборудование.
 
 - Микроконтроллер STC15F104W
 - Классический USB-UART адаптер (СH340, PL2101, FT232 и другие, можно и не стандартные типа WCH-Link)
 - Передатчик с поддержкой CRSF протокола
 - Сервоприводы для тестирования
 
-## Схема подключения
+## Подключение.
 
-```
-STC15F104W
-    |
-    |-- P3.1 -> PWM Channel 1
-    |-- P3.2 -> PWM Channel 2
-    |-- P3.3 -> PWM Channel 3
-    |-- P3.4 -> PWM Channel 4
-    |-- P3.5 -> PWM Channel 5
-    |
-    |-- P3.0 (RXD) <- CRSF RX
-    |-- P3.1 (TXD) -> CRSF TX (не используется)
-    |
-    |-- GND <- GND от источника питания
-    |-- VCC <- +5V от источника питания
-```
+- PWM каналы:
+  - P3.1 -> PWM канал 1
+  - P3.2 -> PWM канал 2
+  - P3.3 -> PWM канал 3
+  - P3.4 -> PWM канал 4
+  - P3.5 -> PWM канал 5
+- CRSF/Обновление прошивки:
+  - P3.0 (RXD) <- CRSF RX
+  - P3.1 (TXD) -> CRSF TX (не используется)
+- Источник питания:
+  - GND <- GND
+  - VCC <- +5V
 
-## Сборка проекта
+## Сборка проекта.
 
 1. Установите [Visual Studio Code](https://code.visualstudio.com/)
 2. Установите расширение [PlatformIO IDE](https://platformio.org/install/ide?install=vscode)
 3. Клонируйте репозиторий:
-   ```bash
-   git clone https://github.com/chagin0leg/crsf2pwm_stc15.git
-   cd crsf2pwm_stc15
-   ```
+```
+git clone https://github.com/chagin0leg/crsf2pwm_stc15.git
+cd crsf2pwm_stc15
+```
 4. Откройте проект в VS Code
 5. Дождитесь установки зависимостей PlatformIO
 6. Нажмите кнопку Build (✓) в нижней панели PlatformIO или используйте сочетание клавиш Ctrl+Alt+B
 
-## Прошивка
+## Загрузка программного обеспечения.
 
 1. Подключите программатор к микроконтроллеру к тем же пинам, что и CRSF (P3.0 (RXD) и P3.1 (TXD))
 2. Нажмите кнопку Upload (→) в нижней панели PlatformIO или используйте сочетание клавиш Ctrl+Alt+U
 3. Следуйте инструкциям (обычно просит переподать питание) и дождитесь завершения прошивки
 
-## Использование
+## Использование устройства.
 
 1. Подключите передатчик с поддержкой CRSF к пину P3.0 (RXD)
 2. Подключите сервоприводы к пинам P3.1 - P3.5
 3. Подайте питание на микроконтроллер
 4. Настройте передатчик на работу в режиме CRSF
 
-## Лицензия
+## Лицензия.
 
 Проект распространяется под лицензией MIT. Подробности в файле [LICENSE](LICENSE).
 
-## Автор
+## Автор.
 
 - **Chagin O.S.** - [GitHub](https://github.com/chagin0leg)
 
-## Вклад в проект
+## Вклад в проект.
 
-Если вы хотите внести свой вклад в проект:
-1. Форкните репозиторий
-2. Создайте ветку для ваших изменений (`git checkout -b feature/amazing-feature`)
-3. Зафиксируйте изменения (`git commit -m 'Add some amazing feature'`)
-4. Отправьте изменения в ваш форк (`git push origin feature/amazing-feature`)
-5. Создайте Pull Request 
+1. Создайте форк репозитория через интерфейс GitHub
+2. Клонируйте форк локально:
+```
+git clone https://github.com/YOUR_USERNAME/crsf2pwm_stc15.git
+cd crsf2pwm_stc15
+```
+3. Создайте новую ветку для разработки:
+```
+git checkout -b feature/your-feature-name
+```
+4. Внесите необходимые изменения в код
+5. Зафиксируйте изменения с информативным сообщением:
+```
+git add .
+git commit -m "feat: add new feature description"
+```
+6. Отправьте изменения в удаленный репозиторий:
+```
+git push origin feature/your-feature-name
+```
+7. Создайте Pull Request в основной репозиторий через интерфейс GitHub 
