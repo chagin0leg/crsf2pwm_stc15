@@ -1,41 +1,10 @@
 #!/usr/bin/env python3
 import os
 import sys
-import subprocess
 import traceback
-import venv
-import platform
 import re
+from deep_translator import GoogleTranslator
 
-def ensure_dependencies():
-    script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-    venv_dir = os.path.join(os.path.dirname(script_dir), '.venv')
-    
-    if not os.path.exists(venv_dir):
-        print("Creating virtual environment...")
-        venv.create(venv_dir, with_pip=True)
-    
-    if platform.system() == "Windows":
-        pip_path = os.path.join(venv_dir, "Scripts", "pip")
-        python_path = os.path.join(venv_dir, "Scripts", "python")
-    else:
-        pip_path = os.path.join(venv_dir, "bin", "pip")
-        python_path = os.path.join(venv_dir, "bin", "python")
-    
-    try:
-        subprocess.check_call([pip_path, 'install', 'deep-translator==1.11.4'])
-        sys.executable = python_path
-    except Exception as e:
-        print(f"Failed to install deep-translator: {e}")
-        sys.exit(1)
-
-try:
-    ensure_dependencies()
-    from deep_translator import GoogleTranslator
-except Exception as e:
-    print(f"Error during imports: {e}")
-    traceback.print_exc()
-    sys.exit(1)
 
 def clean_spaces_between_brackets(text):
     pattern = r'\[(.*?)\]\s+\((.*?)\)'
