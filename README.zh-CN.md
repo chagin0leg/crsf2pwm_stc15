@@ -4,7 +4,7 @@
 
 ＃CRSF到PWM转换器，用于STC15F104W。
 
-Microcontroller STC15F104W中的PWM信号中的CRSF（Crossfire）协议转换器。该项目旨在用于在RC中使用模型，其中CRSF数字协议的转换需要用于模拟PWM信号以管理伺服驱动器。
+Microcontroller STC15F104W中的PWM信号中的CRSF（Crossfire）协议转换器。该项目旨在在RC中使用模型，在此中，CRSF数字协议的转换需要用于模拟PWM信号以管理伺服驱动器。
 
 ##软件功能。
 
