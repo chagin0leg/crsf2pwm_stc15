@@ -6,6 +6,9 @@ on:
       - master
       - develop
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,10 +32,10 @@ jobs:
     - name: Build with PlatformIO
       run: pio run -e release
     
-    - name: Update READMEs and amend commit
+    - name: Commit updated READMEs
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add README.*.md
-        git commit --amend --no-edit
-        git push --force 
+        git commit -m "Update translated READMEs" || echo "Nothing to commit"
+        git push
