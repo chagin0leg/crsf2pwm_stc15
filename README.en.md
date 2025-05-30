@@ -23,18 +23,21 @@ CRSF (Crossfire) protocol converter in PWM signals for the microcontroller STC15
 
 ## connection.
 
-- PWM channels:
-  - P3.1 -> PWM Channel 1
-  - P3.2 -> PWM Channel 2
-  - P3.3 -> PWM Channel 3
-  - P3.4 -> PWM Channel 4
-  - P3.5 -> PWM Channel 5
-- CRSF/Firmware update:
-  - P3.0 (RXD) <- CRSF RX
-  - P3.1 (TXD) -> CRSF TX (not used)
-- Power supply:
-  - GND <- GND
-  - VCC <- +5V
+```
+STC15F104W
+    |
+    |-- P3.1 -> PWM Channel 1
+    |-- P3.2 -> PWM Channel 2
+    |-- P3.3 -> PWM Channel 3
+    |-- P3.4 -> PWM Channel 4
+    |-- P3.5 -> PWM Channel 5
+    |
+    |-- P3.0 (RXD) <- CRSF RX
+    |-- P3.1 (TXD) -> CRSF TX (не используется)
+    |
+    |-- GND <- GND от источника питания
+    |-- VCC <- +5V от источника питания
+```
 
 ## Assembly of the project.
 
@@ -42,8 +45,8 @@ CRSF (Crossfire) protocol converter in PWM signals for the microcontroller STC15
 2. Set the expansion [Platformio IDE](https://platformio.org/install/ide?install=vscode)
 3. Clon the repository:
 ```
-Git Clone https://github.com/chagin0leg/crsf2pwm_stc15.git
-CD CRSF2PWM_STC15
+git clone https://github.com/chagin0leg/crsf2pwm_stc15.git
+cd crsf2pwm_stc15
 ```
 4. Open the project in VS Code
 5. Wait for the installation of addictions Platformio
@@ -75,21 +78,21 @@ The project is distributed under the MIT license. Details in the [license](licen
 1. Create Fork repository through the Github interface
 2. Clon fork locally:
 ```
-Git Clone https://github.com/your_username/crsf2pwm_stc15.git
-CD CRSF2PWM_STC15
+git clone https://github.com/YOUR_USERNAME/crsf2pwm_stc15.git
+cd crsf2pwm_stc15
 ```
 3. Create a new development branch:
 ```
-Git Checkout -b Feature/Your-Feature-Name
+git checkout -b feature/your-feature-name
 ```
 4. Make the necessary changes to the code
 5. Fix changes with an informative message:
 ```
-Git Add.
-GIT COMMIT -M "Feat: Add New Feature Description"
+git add .
+git commit -m "feat: add new feature description"
 ```
 6. Send changes to a remote repository:
 ```
-GIT PUSH Origin Feature/Your-Feature-Name
+git push origin feature/your-feature-name
 ```
 7. Create Pull Request in the main repository through the Github interface

@@ -23,18 +23,21 @@ Convertidor de protocolo CRSF (Crossfire) en señales PWM para el microcontrolad
 
 ## conexión.
 
-- Canales PWM:
-  - P3.1 -> PWM Channel 1
-  - P3.2 -> PWM Channel 2
-  - P3.3 -> PWM Channel 3
-  - P3.4 -> PWM Channel 4
-  - P3.5 -> canal PWM 5
-- Actualización de CRSF/firmware:
-  - P3.0 (RXD) <- CRSF RX
-  - P3.1 (TXD) -> CRSF TX (no utilizado)
-- Fuente de alimentación:
-  - gnd <- gnd
-  - VCC <- +5V
+```
+STC15F104W
+    |
+    |-- P3.1 -> PWM Channel 1
+    |-- P3.2 -> PWM Channel 2
+    |-- P3.3 -> PWM Channel 3
+    |-- P3.4 -> PWM Channel 4
+    |-- P3.5 -> PWM Channel 5
+    |
+    |-- P3.0 (RXD) <- CRSF RX
+    |-- P3.1 (TXD) -> CRSF TX (не используется)
+    |
+    |-- GND <- GND от источника питания
+    |-- VCC <- +5V от источника питания
+```
 
 ## ensamblaje del proyecto.
 
@@ -42,8 +45,8 @@ Convertidor de protocolo CRSF (Crossfire) en señales PWM para el microcontrolad
 2. Establezca la expansión [Platformio IDE](https://platformio.org/install/ide?install=vscode)
 3. Clon el repositorio:
 ```
-Clon git https://github.com/chagin0leg/crsf2pwm_stc15.git
-CD CRSF2PWM_STC15
+git clone https://github.com/chagin0leg/crsf2pwm_stc15.git
+cd crsf2pwm_stc15
 ```
 4. Abra el proyecto en VS Code
 5. Espere la instalación de adicciones Plataforma
@@ -75,21 +78,21 @@ El proyecto se distribuye bajo la licencia MIT. Detalles en el archivo [Licencia
 1. Cree repositorio de bifurcaciones a través de la interfaz GitHub
 2. Clon Fork localmente:
 ```
-Git clon https://github.com/your_username/crsf2pwm_stc15.git
-CD CRSF2PWM_STC15
+git clone https://github.com/YOUR_USERNAME/crsf2pwm_stc15.git
+cd crsf2pwm_stc15
 ```
 3. Cree una nueva rama de desarrollo:
 ```
-Git Checkout -B función/Nombre de su característica
+git checkout -b feature/your-feature-name
 ```
 4. Haga los cambios necesarios en el código
 5. Arregle los cambios con un mensaje informativo:
 ```
-Git Agregar.
-Git commit -m "hazaña: agregue la nueva característica descripción"
+git add .
+git commit -m "feat: add new feature description"
 ```
 6. Envíe cambios a un repositorio remoto:
 ```
-Git Push Origin Feature/Your-Feature-Name
+git push origin feature/your-feature-name
 ```
 7. Cree solicitud de extracción en el repositorio principal a través de la interfaz GitHub

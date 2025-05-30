@@ -23,18 +23,21 @@ CRSF (क्रॉसफ़ायर) माइक्रोकंट्रोल
 
 ## कनेक्शन।
 
-- PWM चैनल:
-  - P3.1 -> PWM चैनल 1
-  - P3.2 -> PWM चैनल 2
-  - P3.3 -> PWM चैनल 3
-  - P3.4 -> PWM चैनल 4
-  - P3.5 -> PWM चैनल 5
-- CRSF/फर्मवेयर अपडेट:
-  - P3.0 (RXD) <- CRSF RX
-  - P3.1 (TXD) -> CRSF TX (उपयोग नहीं किया गया)
-- बिजली की आपूर्ति:
-  - gnd <- gnd
-  - VCC <- +5V
+```
+STC15F104W
+    |
+    |-- P3.1 -> PWM Channel 1
+    |-- P3.2 -> PWM Channel 2
+    |-- P3.3 -> PWM Channel 3
+    |-- P3.4 -> PWM Channel 4
+    |-- P3.5 -> PWM Channel 5
+    |
+    |-- P3.0 (RXD) <- CRSF RX
+    |-- P3.1 (TXD) -> CRSF TX (не используется)
+    |
+    |-- GND <- GND от источника питания
+    |-- VCC <- +5V от источника питания
+```
 
 ## परियोजना की विधानसभा।
 
@@ -42,8 +45,8 @@ CRSF (क्रॉसफ़ायर) माइक्रोकंट्रोल
 2। विस्तार सेट करें [प्लेटफ़ॉर्मियो आईडीई](https://platformio.org/install/ide?install=vscode)
 3। रिपॉजिटरी क्लोन:
 ```
-Git क्लोन https://github.com/chagin0leg/crsf2pwm_stc15.git
-CD CRSF2PWM_STC15
+git clone https://github.com/chagin0leg/crsf2pwm_stc15.git
+cd crsf2pwm_stc15
 ```
 4। बनाम कोड में परियोजना खोलें
 5। व्यसनों की स्थापना के लिए प्रतीक्षा करें
@@ -75,21 +78,21 @@ CD CRSF2PWM_STC15
 1। GitHub इंटरफ़ेस के माध्यम से कांटा रिपॉजिटरी बनाएं
 2। क्लोन कांटा स्थानीय रूप से:
 ```
-Git क्लोन https://github.com/your_username/crsf2pwm_stc15.git
-CD CRSF2PWM_STC15
+git clone https://github.com/YOUR_USERNAME/crsf2pwm_stc15.git
+cd crsf2pwm_stc15
 ```
 3। एक नई विकास शाखा बनाएं:
 ```
-Git Checkout -b फ़ीचर/आपकी-सुविधा-नाम
+git checkout -b feature/your-feature-name
 ```
 4। कोड में आवश्यक परिवर्तन करें
 5। एक जानकारीपूर्ण संदेश के साथ परिवर्तन को ठीक करें:
 ```
-Git जोड़ें।
-Git कमिट -M "करतब: नया फीचर विवरण जोड़ें"
+git add .
+git commit -m "feat: add new feature description"
 ```
 6। एक दूरस्थ भंडार में परिवर्तन भेजें:
 ```
-Git पुश मूल सुविधा/आपकी-सुविधा-नाम
+git push origin feature/your-feature-name
 ```
 7। GitHub इंटरफ़ेस के माध्यम से मुख्य रिपॉजिटरी में पुल अनुरोध बनाएं

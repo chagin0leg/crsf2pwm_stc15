@@ -48,10 +48,31 @@ def fix_code_blocks(content):
             lines[i] = '```'
     return '\n'.join(lines)
 
+def restore_code_from_original(orig_text, translated_text):
+    """
+    Берём из orig_text список всех кодовых блоков вместе с «```»,
+    а из translated_text — текст разбитый на куски между такими же блоками.
+    Склеиваем так, чтобы в финале везде стояли оригинальные блоки.
+    """
+    code_pattern = re.compile(r'```[\s\S]*?```')
+    orig_blocks = code_pattern.findall(orig_text)
+    # разбиваем переведённый текст на куски между (изменёнными!) блоками
+    parts = code_pattern.split(translated_text)
+    # если переводчик не тронул ритм блоков, то len(parts) == len(orig_blocks) + 1
+    if len(parts) != len(orig_blocks) + 1:
+        # на всякий случай — лучше падать, чем некорректно склеить
+        raise RuntimeError("Не совпало число кодовых блоков в оригинале и в переводе")
+    # склеиваем: текст до первого блока, первый orig_blocks, текст до второго блока, …
+    result = [parts[0]]
+    for blk, tail in zip(orig_blocks, parts[1:]):
+        result.append(blk)
+        result.append(tail)
+    return ''.join(result)
+
 def translate_markdown(input_file, output_file, source_lang, target_lang):
     try:
         with open(input_file, 'r', encoding='utf-8') as f:
-            content = f.read()
+            orig = f.read()
 
         lang_links = [
             "[English (Auto-translated)](README.en.md)",
@@ -66,9 +87,9 @@ def translate_markdown(input_file, output_file, source_lang, target_lang):
             "The original Russian version is the source of truth. Translation is done using "
             "Google Translate API via GitHub Actions.\n\n"
         )
-        first_header_index = content.find('#')
+        first_header_index = orig.find('#')
         if first_header_index != -1:
-            content = content[first_header_index:]
+            content = orig[first_header_index:]
         
         translator = GoogleTranslator(source=source_lang, target=target_lang)
         translated_content = translator.translate(content)
@@ -76,8 +97,10 @@ def translate_markdown(input_file, output_file, source_lang, target_lang):
         translated_content = clean_spaces_between_brackets(translated_content)
         translated_content = fix_code_blocks(translated_content)
         
+        final = restore_code_from_original(orig, translated_content)
+        
         with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(header + translated_content)
+            f.write(header + final)
         print(f"✓ Translated {os.path.basename(input_file)} -> {os.path.basename(output_file)}")
     except Exception as e:
         print(f"Error during translation: {e}")

@@ -23,18 +23,21 @@ Microcontroller STC15F104W中的PWM信号中的CRSF（Crossfire）协议转换�
 
 ＃＃ 联系。
 
--PWM频道：
-  -p3.1-> PWM通道1
-  -P3.2-> PWM频道2
-  -p3.3-> PWM频道3
-  -P3.4-> PWM频道4
-  -p3.5-> PWM频道5
--CRSF/固件更新：
-  -P3.0（RXD）<-CRSF RX
-  -p3.1（TXD） - > CRSF TX（未使用）
-- 电源供应：
-  -gnd <-Gnd
-  -VCC < -  +5V
+```
+STC15F104W
+    |
+    |-- P3.1 -> PWM Channel 1
+    |-- P3.2 -> PWM Channel 2
+    |-- P3.3 -> PWM Channel 3
+    |-- P3.4 -> PWM Channel 4
+    |-- P3.5 -> PWM Channel 5
+    |
+    |-- P3.0 (RXD) <- CRSF RX
+    |-- P3.1 (TXD) -> CRSF TX (не используется)
+    |
+    |-- GND <- GND от источника питания
+    |-- VCC <- +5V от источника питания
+```
 
 ##项目组装。
 
@@ -42,8 +45,8 @@ Microcontroller STC15F104W中的PWM信号中的CRSF（Crossfire）协议转换�
 2。设置扩展[Platformio IDE]（https://platformio.org/install/ide?install = vscode）
 3。存储库克隆：
 ```
-git克隆https://github.com/chagin0leg/crsf2pwm_stc15.git
-CD CRSF2PWM_STC15
+git clone https://github.com/chagin0leg/crsf2pwm_stc15.git
+cd crsf2pwm_stc15
 ```
 4。用VS代码打开项目
 5。等待成瘾平台的安装
@@ -75,21 +78,21 @@ CD CRSF2PWM_STC15
 1。通过github接口创建叉子存储库
 2。克隆叉本地：
 ```
-git克隆https://github.com/your_username/crsf2pwm_stc15.git
-CD CRSF2PWM_STC15
+git clone https://github.com/YOUR_USERNAME/crsf2pwm_stc15.git
+cd crsf2pwm_stc15
 ```
 3。创建一个新的开发分支：
 ```
-git Checkout -B功能/您的功能名称
+git checkout -b feature/your-feature-name
 ```
 4.对代码进行必要的更改
 5。通过信息丰富的消息进行修复更改：
 ```
-git添加。
-git commit -m“壮举：添加新功能描述”
+git add .
+git commit -m "feat: add new feature description"
 ```
 6。将更改发送到远程存储库：
 ```
-git推送起源功能/您的功能名称
+git push origin feature/your-feature-name
 ```
 7。通过GitHub接口在主存储库中创建拉力请求
