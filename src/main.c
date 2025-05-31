@@ -1,14 +1,14 @@
 /**
  * @file main.c
  * @brief CRSF to PWM converter implementation for STC15F104W microcontroller
- * 
+ *
  * This file implements a CRSF (Crossfire) to PWM signal converter using STC15 microcontroller.
  * It receives CRSF protocol data through UART and converts it to PWM signals for RC servos.
- * 
+ *
  * @author Chagin O.S.
  * @date 2025.05.29
  * @version 1.0
- * 
+ *
  * @details
  * The converter supports up to 5 PWM channels with the following features:
  * - CRSF protocol reception at 115200 baud rate
@@ -24,15 +24,13 @@
 static uint8_t input_buffer[PACKAGE_MAX_SIZE];
 static uint16_t channel_us[EVENT_COUNT] = {992, 992, 992, 992, 992, 14600};
 static state_flags_t flags = {0};
+static uint8_t Serial_Data = 0;
 
 inline void Uart1_Init(void) // 115200bps@22.1184MHz
 {
-    SCON = 0x50;  // 8 bits and variable baudrate
-    AUXR |= 0x01; // UART 1 use Timer2 as baudrate generator
-    AUXR |= 0x04; // Timer clock is 1T mode
-    T2L = 0xD0;   // Initial timer value
-    T2H = 0xFF;   // Initial timer value
-    AUXR |= 0x10; // Timer2 start run
+    INT_CLKO |= 0x40; // Enable Int4 Falling mode
+    AUXR |= 0x04;     // Timer clock is 1T mode
+    IE2 |= 0x04;      // Enable Interrupt for Timer2
 }
 
 inline void Timer0_Init(void) // ~0.5425us@22.1184MHz
@@ -66,10 +64,12 @@ void main(void)
 
     while (1)
     {
-        if (Receive_Interrupt)
+        if (flags.Receive_Interrupt)
         {
-            Receive_Interrupt = 0;
+            DISABLE_INTERRUPTS();
+            flags.Receive_Interrupt = 0;
             byte = Serial_Data;
+            ENABLE_INTERRUPTS();
 
             switch (flags.state)
             {
@@ -115,7 +115,7 @@ void main(void)
                     channel_us[2] = ((crsf_channels_t *)input_buffer)->ch2;
                     channel_us[3] = ((crsf_channels_t *)input_buffer)->ch3;
                     channel_us[4] = ((crsf_channels_t *)input_buffer)->ch4;
-                    channel_us[5] = 14600;
+                    channel_us[5] = 14600; // TODO: Incorrect value
                     for (uint8_t i = 0; i < CHANNEL_COUNT; i++)
                     {
                         if (channel_us[i] < 172 || channel_us[i] > 1811)
@@ -138,10 +138,8 @@ void main(void)
 void Timer0_ISR(void) __interrupt(1)
 {
     static uint8_t current_channel = 0;
-
-    DISABLE_INTERRUPTS();
     uint16_t ticks = (0xFB1E) - channel_us[current_channel] * 3 / 2;
-    TL0 = ticks >> 0, TH0 = ticks >> 8;
+    TH0 = ticks >> 8, TL0 = ticks >> 0;
 
     if (current_channel == 0)
         P31 = 1;
@@ -154,9 +152,30 @@ void Timer0_ISR(void) __interrupt(1)
     else if (current_channel == 4)
         P34 = 0, P35 = 1;
     else if (current_channel == 5)
-        P35 = 0, current_channel = -1;
+        P35 = 0, current_channel = 0xFF;
 
     ++current_channel;
+}
 
-    ENABLE_INTERRUPTS();
+void Timer2_Isr(void) __interrupt(12)
+{
+    static uint8_t rx_buf = 0, rx_cnt = 0;
+    rx_buf |= (P30 ? 1 : 0) << (rx_cnt++);
+
+    if (rx_cnt >= 8)
+    {
+        Serial_Data = rx_buf;
+        rx_buf = 0, rx_cnt = 0;
+        flags.Receive_Interrupt = 1;
+        INT_CLKO |= 0x40; // Enable Int4
+        AUXR &= ~0x10;    // Disable Timer2
+        T2H = 0xFF, T2L = 0xFF;
+    }
+}
+
+void INT4_ISR(void) __interrupt(16)
+{
+    INT_CLKO &= ~0x40; // Disable Int4
+    T2H = T2H_INIT, T2L = T2L_INIT;
+    AUXR |= 0x10; // Enable Timer 2
 }
