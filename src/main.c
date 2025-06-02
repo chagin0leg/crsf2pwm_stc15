@@ -6,7 +6,7 @@
  * It receives CRSF protocol data through UART and converts it to PWM signals for RC servos.
  *
  * @author Chagin O.S.
- * @date 2025.05.29
+ * @date 2025.06.03
  * @version 1.0
  *
  * @details
@@ -21,55 +21,86 @@
 #include "stc15.h"
 #include "crsf.h"
 
-static uint8_t input_buffer[PACKAGE_MAX_SIZE];
-static uint16_t channel_us[EVENT_COUNT] = {992, 992, 992, 992, 992, 14600};
-static state_flags_t flags = {0};
-static uint8_t Serial_Data = 0;
+uint8_t input_buffer[PACKAGE_MAX_SIZE];
+uint16_t channel_us[EVENT_COUNT] = {
+    CRSF_TO_TIMER(CRSF_MID),
+    CRSF_TO_TIMER(CRSF_MID),
+    CRSF_TO_TIMER(CRSF_MID),
+    CRSF_TO_TIMER(CRSF_MID),
+    CRSF_TO_TIMER(CRSF_MID),
+    0x10000 - 0xD800 + (CRSF_ADD + (CRSF_MID * 2)) * CHANNEL_COUNT,
+};
+state_flags_t flags = {0};
 
-inline void Uart1_Init(void) // 115200bps@22.1184MHz
+inline void Uart1_Init(void) // 115200bps@33.1776MHz
 {
-    INT_CLKO |= 0x40; // Enable Int4 Falling mode
-    AUXR |= 0x04;     // Timer clock is 1T mode
-    IE2 |= 0x04;      // Enable Interrupt for Timer2
+    TMOD = 0x00;            // Timer0 in 16-bit auto reload mode
+    AUXR = 0x80;            // Timer0 working at 1T mode
+    TL0 = T0_RELOAD & 0xFF; // Initial Timer0 and set reload value
+    TH0 = T0_RELOAD >> 8;   // Initial Timer0 and set reload value
+    TR0 = 1;                // Timer0 start running
+    ET0 = 1;                // Enable Timer0 interrupt
+    PT0 = 1;                // Improve Timer0 interrupt priority
 }
 
-inline void Timer0_Init(void) // ~0.5425us@22.1184MHz
+inline void Timer2_Init(void) // ~0.3617us@33.1776MHz
 {
-    AUXR &= 0x7F; // Timer clock is 12T mode
-    TMOD &= 0xF0; // Mode 0/1 (presumably Mode 1: 16-bit)
-    TF0 = 0;      // Clear Timer0 Overflow flag
-    TR0 = 1;      // Start Timer0
-    ET0 = 1;      // Enable Timer0 interrupt
+    IE2 |= 0x04;  // Enable timer2 interrupt
+    AUXR |= 0x10; // Enable PCA clock
+    EA = 1;       // Enable interrupts
 }
 
-inline void Port3_Init(void)
+// Initializes the GPIO ports for PWM signal output and UART data input
+inline void GPIO_Init(void)
 {
-    P3M0 = 0x00;
-    P3M1 = 0x00;
+    P3M0 = 0x3e; // Set push-pull mode for P31 .. P35 (PWM channels)
+    P3M1 = 0x01; // Set input-only mode for P30 (UART RX)
+}
+
+inline void unpack(const uint8_t *data, uint16_t *out_values)
+{
+    uint32_t bit_buffer = 0;
+    uint8_t bit_count = 0;
+    uint8_t value_index = 0;
+    uint16_t value, offset;
+    offset = (0x10000 - 0xD800 + CRSF_ADD * CHANNEL_COUNT);
+
+    while (value_index < CHANNEL_COUNT)
+    {
+        bit_buffer |= ((uint32_t)(*data++)) << bit_count;
+        bit_count += 8;
+
+        if (bit_count >= 11)
+        {
+            value = (bit_buffer & ((1 << 11) - 1)) << 1;
+            out_values[value_index++] = 0x10000 - CRSF_ADD - value;
+            offset += value;
+            bit_buffer >>= 11;
+            bit_count -= 11;
+        }
+    }
+    out_values[CHANNEL_COUNT] = offset;
 }
 
 void main(void)
 {
-    uint8_t byte;
+    uint8_t byte = 0;
     uint8_t index = 0;
     uint8_t crc = 0;
     uint8_t length = 0;
     uint8_t type = 0;
 
+    GPIO_Init();
     Uart1_Init();
-    Timer0_Init();
-    Port3_Init();
-
-    ENABLE_INTERRUPTS();
+    Timer2_Init();
 
     while (1)
     {
-        if (flags.Receive_Interrupt)
+
+        if (flags.REND)
         {
-            DISABLE_INTERRUPTS();
-            flags.Receive_Interrupt = 0;
-            byte = Serial_Data;
-            ENABLE_INTERRUPTS();
+            flags.REND = 0;
+            byte = flags.RBUF;
 
             switch (flags.state)
             {
@@ -79,19 +110,18 @@ void main(void)
                 break;
 
             case WAIT_LENGTH:
-                if (byte < 2 || byte > 62)
+                if (byte < 22 || byte > PACKAGE_MAX_SIZE)
                 {
                     flags.state = WAIT_SYNC;
                     break;
                 }
-                length = byte;
-                crc = 0;
+                length = byte - 2;
                 flags.state = WAIT_TYPE;
                 break;
 
             case WAIT_TYPE:
                 type = byte;
-                index = 0;
+                index = crc = 0;
                 flags.state = WAIT_PAYLOAD;
                 break;
 
@@ -102,28 +132,13 @@ void main(void)
                     break;
                 }
                 input_buffer[index++] = byte;
-                if (index >= length - 1)
+                if (index >= length)
                     flags.state = WAIT_CRC;
                 break;
 
             case WAIT_CRC:
                 if (crc == byte && type == CRSF_FRAMETYPE_CHANNELS)
-                {
-                    DISABLE_INTERRUPTS();
-                    channel_us[0] = ((crsf_channels_t *)input_buffer)->ch0;
-                    channel_us[1] = ((crsf_channels_t *)input_buffer)->ch1;
-                    channel_us[2] = ((crsf_channels_t *)input_buffer)->ch2;
-                    channel_us[3] = ((crsf_channels_t *)input_buffer)->ch3;
-                    channel_us[4] = ((crsf_channels_t *)input_buffer)->ch4;
-                    channel_us[5] = 14600; // TODO: Incorrect value
-                    for (uint8_t i = 0; i < CHANNEL_COUNT; i++)
-                    {
-                        if (channel_us[i] < 172 || channel_us[i] > 1811)
-                            channel_us[i] = 992;
-                        channel_us[5] -= 992 - channel_us[i];
-                    }
-                    ENABLE_INTERRUPTS();
-                }
+                    unpack(input_buffer, channel_us);
                 flags.state = WAIT_SYNC;
                 break;
             }
@@ -137,45 +152,43 @@ void main(void)
 
 void Timer0_ISR(void) __interrupt(1)
 {
-    static uint8_t current_channel = 0;
-    uint16_t ticks = (0xFB1E) - channel_us[current_channel] * 3 / 2;
-    TH0 = ticks >> 8, TL0 = ticks >> 0;
+    static uint8_t RCNT = 0, RBIT = 0, RDAT = 0, RING = 0;
 
-    if (current_channel == 0)
-        P31 = 1;
-    else if (current_channel == 1)
-        P31 = 0, P32 = 1;
-    else if (current_channel == 2)
-        P32 = 0, P33 = 1;
-    else if (current_channel == 3)
-        P33 = 0, P34 = 1;
-    else if (current_channel == 4)
-        P34 = 0, P35 = 1;
-    else if (current_channel == 5)
-        P35 = 0, current_channel = 0xFF;
-
-    ++current_channel;
+    if (RING)
+    {
+        if (--RCNT == 0)
+        {
+            RCNT = 3; // reset send baudrate counter
+            if (--RBIT == 0)
+            {
+                flags.RBUF = RDAT; // save the data to flags.RBUF
+                RING = 0;          // stop receive
+                flags.REND = 1;    // set receive completed flag
+            }
+            else
+            {
+                RDAT >>= 1;
+                if (RX_pin)
+                    RDAT |= 0x80; // shift RX data to RX buffer
+            }
+        }
+    }
+    else if (!RX_pin)
+    {
+        RING = 1; // set start receive flag
+        RCNT = 4; // initial receive baudrate counter
+        RBIT = 9; // initial receive bit number (8 data bits + 1 stop bit)
+    }
 }
 
 void Timer2_Isr(void) __interrupt(12)
 {
-    static uint8_t rx_buf = 0, rx_cnt = 0;
-    rx_buf |= (P30 ? 1 : 0) << (rx_cnt++);
-
-    if (rx_cnt >= 8)
-    {
-        Serial_Data = rx_buf;
-        rx_buf = 0, rx_cnt = 0;
-        flags.Receive_Interrupt = 1;
-        INT_CLKO |= 0x40; // Enable Int4
-        AUXR &= ~0x10;    // Disable Timer2
-        T2H = 0xFF, T2L = 0xFF;
-    }
-}
-
-void INT4_ISR(void) __interrupt(16)
-{
-    INT_CLKO &= ~0x40; // Disable Int4
-    T2H = T2H_INIT, T2L = T2L_INIT;
-    AUXR |= 0x10; // Enable Timer 2
+    static uint8_t channel = 0;
+    T2H = (uint8_t)(channel_us[channel] >> 8);
+    T2L = (uint8_t)(channel_us[channel] >> 0);
+    P3 &= ~(0b00111110);
+    if (channel != 0)
+        P3 |= 0b00000001 << channel;
+    if (++channel > 5)
+        channel = 0;
 }
