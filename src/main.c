@@ -57,29 +57,18 @@ inline void GPIO_Init(void)
     P3M1 = 0x01; // Set input-only mode for P30 (UART RX)
 }
 
-inline void unpack(const uint8_t *data, uint16_t *out_values)
+void unpack()
 {
-    uint32_t bit_buffer = 0;
-    uint8_t bit_count = 0;
-    uint8_t value_index = 0;
-    uint16_t value, offset;
-    offset = (0x10000 - 0xD800 + CRSF_ADD * CHANNEL_COUNT);
-
-    while (value_index < CHANNEL_COUNT)
+    uint16_t offset = 0x10000 - 0xD800 + CRSF_ADD * CHANNEL_COUNT;
+    for (uint8_t pos = 0, ch = 0; ch < CHANNEL_COUNT; ch++)
     {
-        bit_buffer |= ((uint32_t)(*data++)) << bit_count;
-        bit_count += 8;
-
-        if (bit_count >= 11)
-        {
-            value = (bit_buffer & ((1 << 11) - 1)) << 1;
-            out_values[value_index++] = 0x10000 - CRSF_ADD - value;
-            offset += value;
-            bit_buffer >>= 11;
-            bit_count -= 11;
-        }
+        uint16_t result = 0;
+        for (uint8_t b = 1; b < 12; b++, pos++)
+            result |= (input_buffer[pos >> 3] >> (pos & 0b0111) & 0b0001) << b;
+        offset += result;
+        channel_us[ch] = 0x10000 - CRSF_ADD - (result & 0x0FFF);
     }
-    out_values[CHANNEL_COUNT] = offset;
+    channel_us[CHANNEL_COUNT] = offset;
 }
 
 void main(void)
@@ -138,7 +127,7 @@ void main(void)
 
             case WAIT_CRC:
                 if (crc == byte && type == CRSF_FRAMETYPE_CHANNELS)
-                    unpack(input_buffer, channel_us);
+                    unpack();
                 flags.state = WAIT_SYNC;
                 break;
             }
